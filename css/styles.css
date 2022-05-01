@@ -1,0 +1,15 @@
+*{
+    box-sizing: border-box;
+}
+body{
+    background-color: steelblue;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+canvas{
+    background-color: silver;
+    border: solid 1px;
+}
