@@ -46,7 +46,7 @@ const I = [
     [0, 0, 0, 0],
     [0, 0, 0, 0]
 ]
-// Drawing logic if given a tetromino. Using array accessing logic of array[row][column] === value of that coordinate, will draw the tetromino using forEach as it's an array and forEach simulates accessing the matrix in an (x,y) manner. 
+// Drawing logic if given a tetromino. Using array accessing logic of array[row][column] === value of that coordinate, will draw the tetromino using forEach as it's an array and forEach simulates accessing the matrix in an (y,x) manner. 
 // Canvas fillRect method syntax: fillRect(x, y, width, height)
 // Therefore, tetris logic dictates it's 
 // ctx.fillRect(row, column, 1, 1). ctx.scale takes care of the scaling way up there.
@@ -61,7 +61,7 @@ function drawPiece(piece, move) {
         })
     })
 }
-// I've decided to make another array to save my values to simulate tetrominoes freeing in place. The array will be a matrix like the tetrominoes but in 10x20 dimensions. Reminder :increasing y value increases the row count while x increases column count.
+// I've decided to make another array to save my values to simulate tetrominoes freezing in place. The array will be a matrix like the tetrominoes but in 20x10 dimensions. Reminder :increasing y value increases the row count while x increases column count.
 const board = []
 // This for loop is to create my board. Using similiar accessing logic as my drawPiece function to make my board matrix. Looked up how to make an array, using new Array() method
 for (let y = 0; y < rows; y++) {
@@ -69,7 +69,7 @@ for (let y = 0; y < rows; y++) {
     board.push(new Array(col))
     board[y].fill(0)
     // for(let x = 0; x < col; x++){
-    //     board[y][x] = 0
+    //     // board[y][x] = 0
     // }
 }
 // console.log(board)
@@ -136,7 +136,7 @@ function freeze(board, piece) {
             board[y + currentPiece.y][x + currentPiece.x] = val
         })
     })
-}
+console.log(board)}
 function checkOccupied(board, piece) {
     for (let y = 0; y < piece.shape.length; y++){
         for (let x = 0; x < piece.shape[y].length; x++){
@@ -148,12 +148,50 @@ function checkOccupied(board, piece) {
     }
     return false
 }
+console.log(board)
+// const T = [
+//     [1, 2, 3],
+//     [4, 5, 6],
+//     [7, 8, 9]
+// ]
+// const T = [
+//     [1, 4, 7],
+//     [2, 5, 8],
+//     [3, 6, 9]
+// ]
+// const T = [
+//     [7, 4, 1],
+//     [8, 5, 2],
+//     [9, 6, 3]
+// ]
+function rotate(piece, direction){
+    for(let y = 0; y < piece.shape.length; y++){
+        for(let x= 0; x < y; x++){
+            [piece.shape[y][x],piece.shape[x][y]] = [piece.shape[x][y],piece.shape[y][x]] 
+        }
+    }
+    if(direction > 0){
+        piece.shape.forEach(array =>{
+            array.reverse()
+        })
+    // console.log(piece)
+    } else if(direction < 0){
+        piece.shape.reverse()
+        console.log(piece)
+    }
+    // console.log(piece.shape)
+}
+// rotate(currentPiece, 1)
+// rotate(currentPiece, -1)
 function move(direction) {
     currentPiece.x += direction
+    if(checkOccupied(board,currentPiece)){
+        currentPiece.x -= direction
+    }
 }
 function movePiece(event) {
-    // console.log(event) Consoled to check event properties to use for movement. Decided on keyCode
-    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow
+    // console.log(event) //Consoled to check event properties to use for movement. Decided on keyCode
+    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow,88: x, 90: z
     if (event.keyCode === 37) {
         move(-1)
     } else if (event.keyCode === 39) {
@@ -161,6 +199,10 @@ function movePiece(event) {
     } else if (event.keyCode === 40) {
         dropPiece(timeNow)
         timeDiff = 0
+    } else if (event.keyCode === 88){
+        rotate(currentPiece, 1)
+    } else if (event.keyCode === 90){
+        rotate(currentPiece,-1)
     }
 }
 document.addEventListener('keydown', movePiece)
