@@ -68,13 +68,13 @@ for (let y = 0; y < rows; y++) {
 }
 function checkColor(val){
     switch(val){
-        case 1: return 'purple'
-        case 2: return 'yellow'
-        case 3: return 'green'
-        case 4: return 'red'
-        case 5: return 'blue'
-        case 6: return 'orange'
-        case 7: return 'cyan'
+        case 1: return 'fuchsia' //Purple
+        case 2: return '#ffff00' //Yellow
+        case 3: return 'lime'    //Green
+        case 4: return '#ff2800' //Red
+        case 5: return 'blue'    //Blue
+        case 6: return '#ff8c00' //Orange
+        case 7: return 'cyan'    //Cyan
         default: return 'pink'
     }
 }
@@ -153,6 +153,7 @@ function dropPiece(time) {
         currentPiece.y--
         freeze(board, currentPiece)
         reset(currentPiece)
+        clearLine()
     }
     return lastTime = time
 }
@@ -189,6 +190,15 @@ function checkOccupied(board, piece) {
         }
     }
     return false
+}
+function clearLine() {
+    for(let y = board.length - 1; y > 0; y--){
+        if(!board[y].some(val => val === 0)){
+            const row = board.splice(y,1)[0].fill(0)
+            board.unshift(row)
+            y++
+        }
+    }
 }
 console.log(board)
 // const T = [
