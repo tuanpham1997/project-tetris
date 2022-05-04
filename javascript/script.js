@@ -1,6 +1,8 @@
 console.log('Hello')
-const canvas = document.querySelector('canvas')
+const canvas = document.querySelector('#canvas')
 const ctx = canvas.getContext('2d')
+const nextBlock = document.querySelector('#nextBlock')
+const blockContext = nextBlock.getContext('2d')
 console.log(canvas)
 // Tetris is a grid with a pre-set amount of columns and rows. Canvas dimensions will be scaled to my boxSize which is the size of one square. Looked up the scale method in MDN.
 const rows = 20
@@ -9,6 +11,8 @@ const boxSize = 20
 canvas.width = col * boxSize
 canvas.height = rows * boxSize
 ctx.scale(boxSize, boxSize)
+nextBlock.width = col * boxSize
+nextBlock.height = rows * boxSize
 
 // Tetrominoes!!!! After researching games that had grid arrangement like chess or checkers, decided to make Tetris using arrays in matrix format. The tetrominoes are called T,I,J,L,O,Z, and S.
 const T = [
@@ -56,7 +60,7 @@ const currentPiece = {
     shape: T,
 }
 let bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
-const nextPiece = ['red']
+const nextPiece = []
 const board = []
 for (let y = 0; y < rows; y++) {
     // further research made the for x loop obsolete. Array() takes in desired length as the argument.
@@ -66,8 +70,8 @@ for (let y = 0; y < rows; y++) {
     //     // board[y][x] = 0
     // }
 }
-function checkColor(val){
-    switch(val){
+function checkColor(val) {
+    switch (val) {
         case 1: return 'fuchsia' //Purple
         case 2: return '#ffff00' //Yellow
         case 3: return 'lime'    //Green
@@ -80,18 +84,20 @@ function checkColor(val){
 }
 
 function changePiece(piece) {
-    if (nextPiece.length === 1) {
+    if (nextPiece.length === 0) {
         nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
     }
+    // console.log(nextPiece)
     piece.shape = nextPiece.pop()
     piece.shape = piece.shape.pop()
     nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
     if (bag.length < 1) {
         bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
     }
-    if (nextPiece.length === 1) {
+    if (nextPiece.length === 0) {
         nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
     }
+    // console.log(nextPiece)
 }
 changePiece(currentPiece)
 function reset(piece) {
@@ -112,11 +118,33 @@ function drawPiece(piece, move) {
         row.forEach((val, x) => {
             if (val !== 0) {
                 ctx.fillStyle = checkColor(val)
+                ctx.lineWidth = .05
+                ctx.strokeRect(x + move.x, y + move.y, 1, 1)
                 ctx.fillRect(x + move.x, y + move.y, 1, 1)
             }
         })
     })
 }
+blockContext.fillText('Next Block', 10, 10, 100)
+
+function drawNextPiece(piece) {
+    piece.forEach((row, y) => {
+        row.forEach((val, x) => {
+            if (val !== 0){
+                // console.log(val)
+                blockContext.fillStyle = checkColor(val)
+                blockContext.fillRect((x + 2) * boxSize, (y + 2) * boxSize, boxSize, boxSize)
+            }
+        })
+    })
+}
+function drawNextPieceDisplay() {
+    blockContext.fillStyle = 'black'
+    blockContext.fillRect(boxSize, boxSize * .75, boxSize * 5.5, boxSize * 5.5)
+    drawNextPiece(nextPiece[0][0])
+}
+console.log(nextPiece[0][0])
+// drawNextPiece(nextPiece[0])
 // I've decided to make another array to save my values to simulate tetrominoes freezing in place. The array will be a matrix like the tetrominoes but in 20x10 dimensions. Reminder :increasing y value increases the row count while x increases column count.
 // This for loop is to create my board. Using similiar accessing logic as my drawPiece function to make my board matrix. Looked up how to make an array, using new Array() method
 // console.log(board)
@@ -125,22 +153,26 @@ function drawBoard(board) {
         row.forEach((val, x) => {
             if (val !== 0) {
                 ctx.fillStyle = checkColor(val)
+                ctx.lineWidth = .05
+                ctx.strokeRect(x, y, 1, 1)
                 ctx.fillRect(x, y, 1, 1)
             }
         })
     })
 }
+drawNextPieceDisplay()
 function drawGame() {
     ctx.fillStyle = 'black'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    for (let i = 0; i < col; i++) {
-        if (i % 2 === 0) {
-            ctx.fillStyle = "gray"
-            ctx.fillRect(i, 0, 1, canvas.height)
-        }
-    }
+    // for (let i = 0; i < col; i++) {
+    //     if (i % 2 === 0) {
+    //         ctx.fillStyle = "gray"
+    //         ctx.fillRect(i, 0, 1, canvas.height)
+    //     }
+    // }
     drawBoard(board)
     drawPiece(currentPiece.shape, currentPiece)
+    // drawNextPieceDisplay()
 }
 let timeNow = 0
 let lastTime = 0
@@ -154,6 +186,7 @@ function dropPiece(time) {
         freeze(board, currentPiece)
         reset(currentPiece)
         clearLine()
+        drawNextPieceDisplay()
     }
     return lastTime = time
 }
@@ -192,9 +225,9 @@ function checkOccupied(board, piece) {
     return false
 }
 function clearLine() {
-    for(let y = board.length - 1; y > 0; y--){
-        if(!board[y].some(val => val === 0)){
-            const row = board.splice(y,1)[0].fill(0)
+    for (let y = board.length - 1; y > 0; y--) {
+        if (!board[y].some(val => val === 0)) {
+            const row = board.splice(y, 1)[0].fill(0)
             board.unshift(row)
             y++
         }

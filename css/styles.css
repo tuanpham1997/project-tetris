@@ -13,3 +13,6 @@ canvas{
     background-color: silver;
     border: solid 1px;
 }
+#tetris{
+    display: flex;
+}
