@@ -3,16 +3,21 @@ const canvas = document.querySelector('#canvas')
 const ctx = canvas.getContext('2d')
 const nextBlock = document.querySelector('#nextBlock')
 const blockContext = nextBlock.getContext('2d')
-console.log(canvas)
+const scoreboard = document.querySelector('#scoreboard')
+const scorePoint = document.querySelector('#score')
+const rowTotal = document.querySelector('#rowTotal')
+// const tetrisDivider = document.querySelector('#tetris')
+// console.log(canvas)
 // Tetris is a grid with a pre-set amount of columns and rows. Canvas dimensions will be scaled to my boxSize which is the size of one square. Looked up the scale method in MDN.
 const rows = 20
 const col = 10
-const boxSize = 20
+const boxSize = 30
 canvas.width = col * boxSize
 canvas.height = rows * boxSize
 ctx.scale(boxSize, boxSize)
 nextBlock.width = col * boxSize
-nextBlock.height = rows * boxSize
+nextBlock.height = rows * boxSize/2
+// tetrisDivider.style.maxHeight = canvas.height
 
 // Tetrominoes!!!! After researching games that had grid arrangement like chess or checkers, decided to make Tetris using arrays in matrix format. The tetrominoes are called T,I,J,L,O,Z, and S.
 const T = [
@@ -130,7 +135,7 @@ blockContext.fillText('Next Block', 10, 10, 100)
 function drawNextPiece(piece) {
     piece.forEach((row, y) => {
         row.forEach((val, x) => {
-            if (val !== 0){
+            if (val !== 0) {
                 // console.log(val)
                 blockContext.fillStyle = checkColor(val)
                 blockContext.fillRect((x + 2) * boxSize, (y + 2) * boxSize, boxSize, boxSize)
@@ -177,6 +182,9 @@ function drawGame() {
 let timeNow = 0
 let lastTime = 0
 let timeDiff = 0
+let dropInterval = 1000
+let rowsCleared = 0
+let score = 0
 
 function dropPiece(time) {
     currentPiece.y++
@@ -187,6 +195,11 @@ function dropPiece(time) {
         reset(currentPiece)
         clearLine()
         drawNextPieceDisplay()
+        if (dropInterval > 500) {
+            dropInterval = dropInterval - (rowsCleared * 10)
+        } else if (dropInterval !== 500) {
+            dropInterval = 500
+        }
     }
     return lastTime = time
 }
@@ -196,7 +209,7 @@ function update(time) {
     timeNow = time
     timeDiff = timeNow - lastTime
     // console.log(timeDiff)
-    if (timeDiff > 1000) {
+    if (timeDiff > dropInterval) {
         dropPiece(timeNow)
     }
     drawGame()
@@ -225,13 +238,19 @@ function checkOccupied(board, piece) {
     return false
 }
 function clearLine() {
+    let sameRows = 0
     for (let y = board.length - 1; y > 0; y--) {
         if (!board[y].some(val => val === 0)) {
             const row = board.splice(y, 1)[0].fill(0)
             board.unshift(row)
             y++
+            rowsCleared++
+            sameRows++
+            score += 10 * sameRows ** 2
         }
     }
+    scorePoint.innerText = `score: ${score}`
+    rowTotal.innerText = `rows cleared: ${rowsCleared}`
 }
 console.log(board)
 // const T = [
@@ -311,6 +330,7 @@ function movePiece(event) {
         rotateCurrentPiece(-1)
     } else if (event.keyCode === 32) {
         dropDown(event)
+        timeDiff = 0
     }
 }
 document.addEventListener('keydown', movePiece)

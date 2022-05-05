@@ -12,8 +12,18 @@
 
 <body>
     <h1>Tetris</h1>
+    <div id="buttons-container">
+        <button>New Game</button>
+        <button>Pause</button>
+    </div>
     <div id="tetris">
-        <canvas id="nextBlock"></canvas>
+        <div id="utility">
+            <canvas id="nextBlock"></canvas>
+            <div id="scoreboard">
+                <h3 id ="score">score: 0</h3>
+                <h3 id="rowTotal">rows cleared: 0</h3>
+            </div>
+        </div>
         <canvas id="canvas" width="400" height="800"></canvas>
     </div>
 
