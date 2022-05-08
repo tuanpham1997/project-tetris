@@ -6,6 +6,13 @@ const blockContext = nextBlock.getContext('2d')
 const scoreboard = document.querySelector('#scoreboard')
 const scorePoint = document.querySelector('#score')
 const rowTotal = document.querySelector('#rowTotal')
+const newGame = document.querySelector('#new')
+const pause = document.querySelector('.pause')
+const lastScorePoint = document.querySelector('#last-score')
+const lastRows = document.querySelector('#last-rows')
+let playing = true
+let lastScore
+let lastRowsCleared
 // const tetrisDivider = document.querySelector('#tetris')
 // console.log(canvas)
 // Tetris is a grid with a pre-set amount of columns and rows. Canvas dimensions will be scaled to my boxSize which is the size of one square. Looked up the scale method in MDN.
@@ -16,7 +23,7 @@ canvas.width = col * boxSize
 canvas.height = rows * boxSize
 ctx.scale(boxSize, boxSize)
 nextBlock.width = col * boxSize
-nextBlock.height = rows * boxSize/2
+nextBlock.height = rows * boxSize / 2
 // tetrisDivider.style.maxHeight = canvas.height
 
 // Tetrominoes!!!! After researching games that had grid arrangement like chess or checkers, decided to make Tetris using arrays in matrix format. The tetrominoes are called T,I,J,L,O,Z, and S.
@@ -111,13 +118,33 @@ function reset(piece) {
     piece.x = 4
     piece.y = 0
     if (checkOccupied(board, piece)) {
-        board.forEach(row => (row.fill(0)))
+        gameReset()
     }
     // console.log(bag)
     // console.log(nextPiece)
     // console.log(currentPiece.shape)
 }
-
+function gameReset() {
+    bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
+    lastScore = score
+    lastRowsCleared = rowsCleared
+    score = 0
+    rowsCleared = 0
+    if(!playing){
+        pauseGame()
+    }
+    nextPiece.pop()
+    board.forEach(row => (row.fill(0)))
+    changePiece(currentPiece)
+    currentPiece.x = 4
+    currentPiece.y = 0
+    dropInterval = 1000
+    drawNextPieceDisplay()
+    lastScorePoint.innerText = `Last Score: ${lastScore}`
+    lastRows.innerText = `Last Rows Cleared: ${lastRowsCleared}`
+    scorePoint.innerText = `Score: ${score}`
+    rowTotal.innerText = `Rows Cleared: ${rowsCleared}`
+}
 function drawPiece(piece, move) {
     piece.forEach((row, y) => {
         row.forEach((val, x) => {
@@ -148,7 +175,7 @@ function drawNextPieceDisplay() {
     blockContext.fillRect(boxSize, boxSize * .75, boxSize * 5.5, boxSize * 5.5)
     drawNextPiece(nextPiece[0][0])
 }
-console.log(nextPiece[0][0])
+// console.log(nextPiece[0][0])
 // drawNextPiece(nextPiece[0])
 // I've decided to make another array to save my values to simulate tetrominoes freezing in place. The array will be a matrix like the tetrominoes but in 20x10 dimensions. Reminder :increasing y value increases the row count while x increases column count.
 // This for loop is to create my board. Using similiar accessing logic as my drawPiece function to make my board matrix. Looked up how to make an array, using new Array() method
@@ -206,6 +233,7 @@ function dropPiece(time) {
 
 function update(time) {
     // let lastTime = 0 If I did this, the requestAnimationFrame function will continuously set my variable to 0. Put it outside.
+    // console.log(time)
     timeNow = time
     timeDiff = timeNow - lastTime
     // console.log(timeDiff)
@@ -213,7 +241,14 @@ function update(time) {
         dropPiece(timeNow)
     }
     drawGame()
-    requestAnimationFrame(update)
+    if (playing) {
+        requestAnimationFrame(update)
+    } else {
+        ctx.fillStyle = 'silver'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.font = "1px sans-serif"
+        ctx.strokeText("Paused", canvas.width / (3 * boxSize), canvas.height / (2 * boxSize))
+    }
 }
 update()
 // using logic established in drawPiece to access currentPiece and copy it to my game board
@@ -249,10 +284,10 @@ function clearLine() {
             score += 10 * sameRows ** 2
         }
     }
-    scorePoint.innerText = `score: ${score}`
-    rowTotal.innerText = `rows cleared: ${rowsCleared}`
+    scorePoint.innerText = `Score: ${score}`
+    rowTotal.innerText = `Rows Cleared: ${rowsCleared}`
 }
-console.log(board)
+// console.log(board)
 // const T = [
 //     [1, 2, 3],
 //     [4, 5, 6],
@@ -314,23 +349,42 @@ function dropDown(event) {
     currentPiece.y--
     // dropPiece(timeNow)
 }
-function movePiece(event) {
+function pressKey(event) {
     // console.log(event) //Consoled to check event properties to use for movement. Decided on keyCode
-    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow,88: x, 90: z, 32: space
-    if (event.keyCode === 37) {
-        move(-1)
-    } else if (event.keyCode === 39) {
-        move(1)
-    } else if (event.keyCode === 40) {
-        dropPiece(timeNow)
-        timeDiff = 0
-    } else if (event.keyCode === 88) {
-        rotateCurrentPiece(1)
-    } else if (event.keyCode === 90) {
-        rotateCurrentPiece(-1)
-    } else if (event.keyCode === 32) {
-        dropDown(event)
-        timeDiff = 0
+    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow,88: x, 90: z, 32: space, 80: p
+    if (playing) {
+        if (event.keyCode === 37) {
+            move(-1)
+        } else if (event.keyCode === 39) {
+            move(1)
+        } else if (event.keyCode === 40) {
+            dropPiece(timeNow)
+            timeDiff = 0
+        } else if (event.keyCode === 88) {
+            rotateCurrentPiece(1)
+        } else if (event.keyCode === 90) {
+            rotateCurrentPiece(-1)
+        } else if (event.keyCode === 32) {
+            dropDown(event)
+            timeDiff = 0
+        } else if (event.keyCode === 80) {
+            pauseGame()
+        }
+    } else{
+        if(event.keyCode === 80){
+            pauseGame()
+        }
     }
 }
-document.addEventListener('keydown', movePiece)
+function pauseGame() {
+    playing = !playing
+    update()
+    if (playing) {
+        pause.innerText = 'Pause'
+    } else {
+        pause.innerText = 'Unpause'
+    }
+}
+document.addEventListener('keydown', pressKey)
+newGame.addEventListener('click', gameReset)
+pause.addEventListener('click', pauseGame)

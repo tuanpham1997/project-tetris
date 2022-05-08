@@ -13,15 +13,17 @@
 <body>
     <h1>Tetris</h1>
     <div id="buttons-container">
-        <button>New Game</button>
-        <button>Pause</button>
+        <button id="new">New Game</button>
+        <button class="pause">Pause</button>
     </div>
     <div id="tetris">
         <div id="utility">
             <canvas id="nextBlock"></canvas>
             <div id="scoreboard">
-                <h3 id ="score">score: 0</h3>
-                <h3 id="rowTotal">rows cleared: 0</h3>
+                <h3 id ="score">Score: 0</h3>
+                <h3 id ='last-score'>Last Score: 0</h3>
+                <h3 id ="rowTotal">Rows Cleared: 0</h3>
+                <h3 id ="last-rows">Last Rows Cleared: 0</h3>
             </div>
         </div>
         <canvas id="canvas" width="400" height="800"></canvas>
