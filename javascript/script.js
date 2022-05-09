@@ -27,41 +27,45 @@ nextBlock.height = rows * boxSize / 2
 // tetrisDivider.style.maxHeight = canvas.height
 
 // Tetrominoes!!!! After researching games that had grid arrangement like chess or checkers, decided to make Tetris using arrays in matrix format. The tetrominoes are called T,I,J,L,O,Z, and S.
-const T = [
+function createPiece(shape){
+    switch(shape){
+case 'T':return [
     [0, 1, 0],
     [1, 1, 1],
     [0, 0, 0]
 ]
-const O = [
+case 'O':return [
     [2, 2],
     [2, 2]
 ]
-const S = [
+case 'S':return [
     [0, 3, 3],
     [3, 3, 0],
     [0, 0, 0]
 ]
-const Z = [
+case 'Z':return [
     [4, 4, 0],
     [0, 4, 4],
     [0, 0, 0]
 ]
-const J = [
+case 'J':return [
     [5, 0, 0],
     [5, 5, 5],
     [0, 0, 0]
 ]
-const L = [
+case 'L':return [
     [0, 0, 6],
     [6, 6, 6],
     [0, 0, 0]
 ]
-const I = [
+case 'I':return [
     [0, 0, 0, 0],
     [7, 7, 7, 7],
     [0, 0, 0, 0],
     [0, 0, 0, 0]
-]
+]}
+}
+// console.log(createPiece('T'))
 // Drawing logic if given a tetromino. Using array accessing logic of array[row][column] === value of that coordinate, will draw the tetromino using forEach as it's an array and forEach simulates accessing the matrix in a (y,x) manner. 
 // Canvas fillRect method syntax: fillRect(x, y, width, height)
 // Therefore, tetris logic dictates it's 
@@ -69,10 +73,12 @@ const I = [
 const currentPiece = {
     x: 4,
     y: 0,
-    shape: T,
+    shape: createPiece('T'),
 }
-let bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
-const nextPiece = []
+let bag = ['T', 'T', 'T', 'T', 'O', 'O', 'O', 'O', 'L', 'L', 'L', 'L', 'S', 'S', 'S', 'S', 'Z', 'Z', 'Z', 'Z', 'I', 'I', 'I', 'I', 'J', 'J', 'J', 'J']
+let nextPiece = []
+let savedPiece = []
+let swapped = false
 const board = []
 for (let y = 0; y < rows; y++) {
     // further research made the for x loop obsolete. Array() takes in desired length as the argument.
@@ -97,14 +103,14 @@ function checkColor(val) {
 
 function changePiece(piece) {
     if (nextPiece.length === 0) {
-        nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
+        nextPiece = createPiece((bag.splice(Math.floor(Math.random() * bag.length), 1)[0]))
+        
     }
     // console.log(nextPiece)
-    piece.shape = nextPiece.pop()
-    piece.shape = piece.shape.pop()
-    nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
+    piece.shape = nextPiece
+    nextPiece = createPiece((bag.splice(Math.floor(Math.random() * bag.length), 1)[0]))
     if (bag.length < 1) {
-        bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
+        bag = ['T', 'T', 'T', 'T', 'O', 'O', 'O', 'O', 'L', 'L', 'L', 'L', 'S', 'S', 'S', 'S', 'Z', 'Z', 'Z', 'Z', 'I', 'I', 'I', 'I', 'J', 'J', 'J', 'J']
     }
     if (nextPiece.length === 0) {
         nextPiece.push(bag.splice(Math.floor(Math.random() * bag.length), 1))
@@ -112,6 +118,32 @@ function changePiece(piece) {
     // console.log(nextPiece)
 }
 changePiece(currentPiece)
+function savePiece(){
+    if(savedPiece.length < 1){
+        savedPiece.push(currentPiece.shape)
+        // console.log(savedPiece)
+        reset(currentPiece)
+        swapped = true
+        drawNextPieceDisplay()
+    }else if(swapped){
+        console.log('swapped already')
+    }else{
+        savedPiece.push(currentPiece.shape)
+        // console.log(savedPiece)
+        currentPiece.shape = savedPiece.shift()
+        // console.log(currentPiece.shape)
+        // console.log(savedPiece)
+        // console.log(bag)
+        currentPiece.x = 4
+        currentPiece.y = 0
+        if (checkOccupied(board, currentPiece)) {
+            gameReset()
+        }
+        swapped = true
+        drawNextPieceDisplay()
+    }
+
+}
 function reset(piece) {
     changePiece(piece)
     // console.log(piece.shape)
@@ -125,11 +157,13 @@ function reset(piece) {
     // console.log(currentPiece.shape)
 }
 function gameReset() {
-    bag = [T, T, T, T, O, O, O, O, L, L, L, L, S, S, S, S, Z, Z, Z, Z, I, I, I, I, J, J, J, J]
+    bag = ['T', 'T', 'T', 'T', 'O', 'O', 'O', 'O', 'L', 'L', 'L', 'L', 'S', 'S', 'S', 'S', 'Z', 'Z', 'Z', 'Z', 'I', 'I', 'I', 'I', 'J', 'J', 'J', 'J']
     lastScore = score
     lastRowsCleared = rowsCleared
     score = 0
     rowsCleared = 0
+    savedPiece = []
+    swapped = false
     if(!playing){
         pauseGame()
     }
@@ -157,23 +191,32 @@ function drawPiece(piece, move) {
         })
     })
 }
-blockContext.fillText('Next Block', 10, 10, 100)
+blockContext.font = '15px sans-serif'
+blockContext.fillText('Next Block', 90, 18, 100)
+blockContext.fillText('Saved Block', 84,168,100)
 
-function drawNextPiece(piece) {
+function drawNextPiece(piece,xChange,yChange,scale) {
+    // console.log(currentPiece)
+    // console.log(nextPiece)
     piece.forEach((row, y) => {
         row.forEach((val, x) => {
             if (val !== 0) {
                 // console.log(val)
                 blockContext.fillStyle = checkColor(val)
-                blockContext.fillRect((x + 2) * boxSize, (y + 2) * boxSize, boxSize, boxSize)
+                blockContext.fillRect((x + xChange) * scale/1.5, (y + yChange) * scale/1.5, scale/1.5, scale/1.5)
             }
         })
     })
 }
 function drawNextPieceDisplay() {
     blockContext.fillStyle = 'black'
-    blockContext.fillRect(boxSize, boxSize * .75, boxSize * 5.5, boxSize * 5.5)
-    drawNextPiece(nextPiece[0][0])
+    blockContext.fillRect(boxSize +50, boxSize * .75, boxSize/2 * 6.2, boxSize/2 * 6.2)
+    blockContext.fillRect(boxSize + 50, boxSize * .75 + 150, boxSize/2 * 6.2, boxSize/2 * 6.2)
+    drawNextPiece(nextPiece, 4.5, 2, boxSize)
+    if(savedPiece.length > 0){
+        // console.log('hello')
+        drawNextPiece(savedPiece[0], 4.5, 9.6, boxSize)
+    }
 }
 // console.log(nextPiece[0][0])
 // drawNextPiece(nextPiece[0])
@@ -222,6 +265,7 @@ function dropPiece(time) {
         reset(currentPiece)
         clearLine()
         drawNextPieceDisplay()
+        swapped = false
         if (dropInterval > 500) {
             dropInterval = dropInterval - (rowsCleared * 10)
         } else if (dropInterval !== 500) {
@@ -351,7 +395,7 @@ function dropDown(event) {
 }
 function pressKey(event) {
     // console.log(event) //Consoled to check event properties to use for movement. Decided on keyCode
-    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow,88: x, 90: z, 32: space, 80: p
+    // keyCodes are 37 : leftArrow, 39 : rightArrow, 40 : downArrow,88: x, 90: z, 32: space, 80: p, 83: s
     if (playing) {
         if (event.keyCode === 37) {
             move(-1)
@@ -369,6 +413,8 @@ function pressKey(event) {
             timeDiff = 0
         } else if (event.keyCode === 80) {
             pauseGame()
+        } else if (event.keyCode === 83) {
+            savePiece()
         }
     } else{
         if(event.keyCode === 80){
