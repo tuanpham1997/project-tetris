@@ -10,9 +10,11 @@ const newGame = document.querySelector('#new')
 const pause = document.querySelector('.pause')
 const lastScorePoint = document.querySelector('#last-score')
 const lastRows = document.querySelector('#last-rows')
+const body = document.querySelector('body')
 let playing = true
 let lastScore
 let lastRowsCleared
+let imageSet = ['forest', 'beach', 'ocean','meadow']
 // const tetrisDivider = document.querySelector('#tetris')
 // console.log(canvas)
 // Tetris is a grid with a pre-set amount of columns and rows. Canvas dimensions will be scaled to my boxSize which is the size of one square. Looked up the scale method in MDN.
@@ -27,43 +29,44 @@ nextBlock.height = rows * boxSize / 2
 // tetrisDivider.style.maxHeight = canvas.height
 
 // Tetrominoes!!!! After researching games that had grid arrangement like chess or checkers, decided to make Tetris using arrays in matrix format. The tetrominoes are called T,I,J,L,O,Z, and S.
-function createPiece(shape){
-    switch(shape){
-case 'T':return [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 0, 0]
-]
-case 'O':return [
-    [2, 2],
-    [2, 2]
-]
-case 'S':return [
-    [0, 3, 3],
-    [3, 3, 0],
-    [0, 0, 0]
-]
-case 'Z':return [
-    [4, 4, 0],
-    [0, 4, 4],
-    [0, 0, 0]
-]
-case 'J':return [
-    [5, 0, 0],
-    [5, 5, 5],
-    [0, 0, 0]
-]
-case 'L':return [
-    [0, 0, 6],
-    [6, 6, 6],
-    [0, 0, 0]
-]
-case 'I':return [
-    [0, 0, 0, 0],
-    [7, 7, 7, 7],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
-]}
+function createPiece(shape) {
+    switch (shape) {
+        case 'T': return [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 0, 0]
+        ]
+        case 'O': return [
+            [2, 2],
+            [2, 2]
+        ]
+        case 'S': return [
+            [0, 3, 3],
+            [3, 3, 0],
+            [0, 0, 0]
+        ]
+        case 'Z': return [
+            [4, 4, 0],
+            [0, 4, 4],
+            [0, 0, 0]
+        ]
+        case 'J': return [
+            [5, 0, 0],
+            [5, 5, 5],
+            [0, 0, 0]
+        ]
+        case 'L': return [
+            [0, 0, 6],
+            [6, 6, 6],
+            [0, 0, 0]
+        ]
+        case 'I': return [
+            [0, 0, 0, 0],
+            [7, 7, 7, 7],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0]
+        ]
+    }
 }
 // console.log(createPiece('T'))
 // Drawing logic if given a tetromino. Using array accessing logic of array[row][column] === value of that coordinate, will draw the tetromino using forEach as it's an array and forEach simulates accessing the matrix in a (y,x) manner. 
@@ -104,7 +107,7 @@ function checkColor(val) {
 function changePiece(piece) {
     if (nextPiece.length === 0) {
         nextPiece = createPiece((bag.splice(Math.floor(Math.random() * bag.length), 1)[0]))
-        
+        console.log(nextPiece)
     }
     // console.log(nextPiece)
     piece.shape = nextPiece
@@ -118,16 +121,17 @@ function changePiece(piece) {
     // console.log(nextPiece)
 }
 changePiece(currentPiece)
-function savePiece(){
-    if(savedPiece.length < 1){
+
+function savePiece() {
+    if (savedPiece.length < 1) {
         savedPiece.push(currentPiece.shape)
         // console.log(savedPiece)
         reset(currentPiece)
         swapped = true
         drawNextPieceDisplay()
-    }else if(swapped){
+    } else if (swapped) {
         console.log('swapped already')
-    }else{
+    } else {
         savedPiece.push(currentPiece.shape)
         // console.log(savedPiece)
         currentPiece.shape = savedPiece.shift()
@@ -152,6 +156,9 @@ function reset(piece) {
     if (checkOccupied(board, piece)) {
         gameReset()
     }
+    if (board[0].some(val => val > 0)) {
+        gameReset()
+    }
     // console.log(bag)
     // console.log(nextPiece)
     // console.log(currentPiece.shape)
@@ -164,21 +171,25 @@ function gameReset() {
     rowsCleared = 0
     savedPiece = []
     swapped = false
-    if(!playing){
+    if (!playing) {
         pauseGame()
     }
-    nextPiece.pop()
+    nextPiece = []
     board.forEach(row => (row.fill(0)))
     changePiece(currentPiece)
     currentPiece.x = 4
     currentPiece.y = 0
     dropInterval = 1000
+    updateSpeed()
     drawNextPieceDisplay()
     lastScorePoint.innerText = `Last Score: ${lastScore}`
     lastRows.innerText = `Last Rows Cleared: ${lastRowsCleared}`
     scorePoint.innerText = `Score: ${score}`
     rowTotal.innerText = `Rows Cleared: ${rowsCleared}`
+    body.style.backgroundImage = 'url(../images/meadow.jpg)'
+    imageSet = ['forest', 'beach', 'ocean','meadow']
 }
+
 function drawPiece(piece, move) {
     piece.forEach((row, y) => {
         row.forEach((val, x) => {
@@ -191,11 +202,12 @@ function drawPiece(piece, move) {
         })
     })
 }
+
 blockContext.font = '15px sans-serif'
 blockContext.fillText('Next Block', 90, 18, 100)
-blockContext.fillText('Saved Block', 84,168,100)
+blockContext.fillText('Saved Block', 84, 158, 100)
 
-function drawNextPiece(piece,xChange,yChange,scale) {
+function drawNextPiece(piece, xChange, yChange, scale) {
     // console.log(currentPiece)
     // console.log(nextPiece)
     piece.forEach((row, y) => {
@@ -203,19 +215,19 @@ function drawNextPiece(piece,xChange,yChange,scale) {
             if (val !== 0) {
                 // console.log(val)
                 blockContext.fillStyle = checkColor(val)
-                blockContext.fillRect((x + xChange) * scale/1.5, (y + yChange) * scale/1.5, scale/1.5, scale/1.5)
+                blockContext.fillRect((x + xChange) * scale / 1.5, (y + yChange) * scale / 1.5, scale / 1.5, scale / 1.5)
             }
         })
     })
 }
 function drawNextPieceDisplay() {
     blockContext.fillStyle = 'black'
-    blockContext.fillRect(boxSize +50, boxSize * .75, boxSize/2 * 6.2, boxSize/2 * 6.2)
-    blockContext.fillRect(boxSize + 50, boxSize * .75 + 150, boxSize/2 * 6.2, boxSize/2 * 6.2)
+    blockContext.fillRect(boxSize + 50, boxSize * .75, boxSize / 2 * 6.2, boxSize / 2 * 6.2)
+    blockContext.fillRect(boxSize + 50, boxSize * .75 + 140, boxSize / 2 * 6.2, boxSize / 2 * 6.2)
     drawNextPiece(nextPiece, 4.5, 2, boxSize)
-    if(savedPiece.length > 0){
+    if (savedPiece.length > 0) {
         // console.log('hello')
-        drawNextPiece(savedPiece[0], 4.5, 9.6, boxSize)
+        drawNextPiece(savedPiece[0], 4.5, 8.6, boxSize)
     }
 }
 // console.log(nextPiece[0][0])
@@ -236,25 +248,37 @@ function drawBoard(board) {
     })
 }
 drawNextPieceDisplay()
+
 function drawGame() {
     ctx.fillStyle = 'black'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    // for (let i = 0; i < col; i++) {
-    //     if (i % 2 === 0) {
-    //         ctx.fillStyle = "gray"
-    //         ctx.fillRect(i, 0, 1, canvas.height)
-    //     }
-    // }
+    for (let i = 0; i < col; i++) {
+        ctx.fillStyle = "gray"
+        ctx.fillRect(i, 0, .005, canvas.height)
+    }
+    for (let i = 0; i < rows; i++) {
+        ctx.fillStyle = "gray"
+        ctx.fillRect(0, i, canvas.width, .005)
+    }
     drawBoard(board)
     drawPiece(currentPiece.shape, currentPiece)
     // drawNextPieceDisplay()
 }
+
 let timeNow = 0
 let lastTime = 0
 let timeDiff = 0
 let dropInterval = 1000
 let rowsCleared = 0
 let score = 0
+
+function updateSpeed() {
+    if (dropInterval > 500) {
+        dropInterval = dropInterval - (rowsCleared * 10)
+    } else if (dropInterval !== 500) {
+        dropInterval = 500
+    }
+}
 
 function dropPiece(time) {
     currentPiece.y++
@@ -266,11 +290,7 @@ function dropPiece(time) {
         clearLine()
         drawNextPieceDisplay()
         swapped = false
-        if (dropInterval > 500) {
-            dropInterval = dropInterval - (rowsCleared * 10)
-        } else if (dropInterval !== 500) {
-            dropInterval = 500
-        }
+        updateSpeed()
     }
     return lastTime = time
 }
@@ -326,6 +346,7 @@ function clearLine() {
             rowsCleared++
             sameRows++
             score += 10 * sameRows ** 2
+            changeBackground()
         }
     }
     scorePoint.innerText = `Score: ${score}`
@@ -416,8 +437,8 @@ function pressKey(event) {
         } else if (event.keyCode === 83) {
             savePiece()
         }
-    } else{
-        if(event.keyCode === 80){
+    } else {
+        if (event.keyCode === 80) {
             pauseGame()
         }
     }
@@ -434,3 +455,17 @@ function pauseGame() {
 document.addEventListener('keydown', pressKey)
 newGame.addEventListener('click', gameReset)
 pause.addEventListener('click', pauseGame)
+// =============ExtraExtraExtra=============
+function changeOpacity() {
+    if (rowsCleared % 40) {
+        body.style.opacity = 1 - (rowsCleared % 40) / 200
+    }
+}
+function changeBackground() {
+    if (imageSet.length < 1) {
+        imageSet = ['forest', 'beach', 'ocean','meadow']
+    }
+    if (rowsCleared !== 0 && rowsCleared % 40 === 0) {
+        body.style.backgroundImage = `url(../images/${imageSet.shift()}.jpg)`
+    }
+}

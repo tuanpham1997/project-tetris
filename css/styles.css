@@ -3,13 +3,17 @@
     margin: 0;
 }
 body{
-    background-color: steelblue;
+    background-image: url('../images/meadow.jpg');
+    background-size:cover;
+    background-repeat: no-repeat;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     /* min-height: 100vh; */
     gap: 50px;
+    transition: all 6s;
+    opacity: 1;
 }
 canvas{
     background-color: silver;
